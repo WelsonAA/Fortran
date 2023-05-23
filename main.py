@@ -624,6 +624,37 @@ def Parameter(j):
         return out
 
 
+
+def Expression(j):
+    children = []
+    temp = Tokens[j].to_dict()
+
+    if temp['token_type'] == Token_type.SINGLEQUOTATION:
+        stringSingleOp_dict = StringSingle(j)
+        children.append(stringSingleOp_dict["node"])
+        Node = Tree('String Single Exp', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = stringSingleOp_dict['index']
+        return out
+    elif temp['token_type'] == Token_type.DOUBLEQUOTATION:
+        stringDouble_dict = StringDouble(j)
+        children.append(stringDouble_dict["node"])
+        Node = Tree('String double exp', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = stringDouble_dict['index']
+        return out
+    elif temp['token_type'] == Token_type.INTEGER or temp['token_type'] == Token_type.Constant or temp['token_type'] == Token_type.Dot:
+        boolean_dict = BooleanExpression(j)
+        children.append(boolean_dict["node"])
+        Node = Tree('Boolean Exp',children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = boolean_dict['index']
+        return out
+
+
 def StringSingle(j):
     children = []
     left_single_dict=Match(Token_type.SINGLEQUOTATION,j)
@@ -905,10 +936,10 @@ def Assignment(j):
     children.append(identifer_dict["node"])
     equal_dict = Match(Token_type.EqualOp, identifer_dict["index"])
     children.append(equal_dict["node"])
-    #expression_dict = BooleanExpression(equal_dict["index"])
-    #children.append(expression_dict["node"])
-    expression_dict = StringDouble(equal_dict["index"])
+    expression_dict = Expression(equal_dict["index"])
     children.append(expression_dict["node"])
+    # expression_dict = StringDouble(equal_dict["index"])
+    # children.append(expression_dict["node"])
     Node = Tree('Assignment', children)
     out = dict()
     out["node"] = Node
