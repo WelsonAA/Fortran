@@ -138,7 +138,7 @@ def find_token(text):
             t = token()
             t.lex = str(tokens[i])
             t.token_type = Token_type.COMMENTOP
-            Tokens.append(t)
+            #Tokens.append(t)
             j = i + 1
             comments = ""
             while j < len(tokens):
@@ -146,13 +146,16 @@ def find_token(text):
                     comments += tokens[j]
                     j += 1
                 else:
-                    break
+                    t = token()
+                    t.lex = "\n"
+                    t.token_type = Token_type.NEWLINE
+                    Tokens.append(t)
             i = j
             if(comments!=""):
                 s = token()
                 s.lex = comments
                 s.token_type = Token_type.COMMENTED
-                Tokens.append(s)
+                #Tokens.append(s)
 
         elif str(tokens[i]).upper() in ReservedWords:
             if str(tokens[i]).upper() == "END" and i + 2 < len(tokens):
