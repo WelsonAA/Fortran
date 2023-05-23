@@ -1,9 +1,4 @@
-PROGRAM XY
-IF ( X == Y ) THEN
-p = 5
-ELSE
-o = 3
-ENDIF
-DO welson = 5 , 6 , 5
-pl = 6
-ENDDO
+program variable
+implicit none
+x = 2+3*7/7*5
+end program variables

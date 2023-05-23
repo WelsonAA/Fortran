@@ -54,7 +54,7 @@ class Token_type(Enum):  # listing all tokens type
     BLOCKNAME = 45
     LEFTBRACKET = 46  # [
     RIGHTBRACKET = 47  # ]
-    #SPACE = 48  # ]
+    # SPACE = 48  # ]
     COMMENTED = 49
     DOUBLECOLON = 50
     ENDIF = 51
@@ -96,8 +96,8 @@ ReservedWords = {
     "FALSE": Token_type.FALSE,
     "\n": Token_type.NEWLINE,
     "ENDIF": Token_type.ENDIF,
-    "ENDDO":Token_type.ENDDO
-    #" ": Token_type.SPACE,
+    "ENDDO": Token_type.ENDDO
+    # " ": Token_type.SPACE,
 }
 Operators = {".": Token_type.Dot,
              "=": Token_type.EqualOp,
@@ -272,15 +272,15 @@ def Parse():
     Children = []
     Header_dict = Header(j)
     Children.append(Header_dict["node"])
-    # declsec_dict = DeclSec(Header_dict["index"])
-    # Children.append(declsec_dict["node"])
-    Block_dict = Statements(Header_dict["index"])
+    declsec_dict = DeclSec(Header_dict["index"])
+    Children.append(declsec_dict["node"])
+    Block_dict = Statements(declsec_dict["index"])
     Children.append(Block_dict["node"])
 
     # dic_output = Match(Token_type.Dot, Block_dict["index"])
     # # print(dic_output)
-    # end_dict = End(declsec_dict["index"])
-    # Children.append(end_dict["node"])
+    end_dict = End(Block_dict["index"])
+    Children.append(end_dict["node"])
     # Children.append(dic_output["node"])
     Node = Tree('Program', Children)
 
@@ -306,7 +306,7 @@ def Header(j):
 
 def End(j):
     children = []
-    end_dict = Match(Token_type.End,j)
+    end_dict = Match(Token_type.End, j)
     children.append(end_dict["node"])
     program_dict = Match(Token_type.PROGRAM, end_dict["index"])
     children.append(program_dict["node"])
@@ -344,7 +344,7 @@ def Elines(j):
         elines_dict = Elines(endLineDash_dict["index"])
         if not (elines_dict["node"] == ""):
             children.append(elines_dict["node"])
-        #children.append(elines_dict["node"])
+        # children.append(elines_dict["node"])
         Node = Tree('newLine2', children)
         out = dict()
         out["node"] = Node
@@ -379,7 +379,8 @@ def DeclSec(j):
     endline_dict = Endlines(none_dect["index"])
     Children.append(endline_dict["node"])
     Paramdecls_dict = ParamDecls(endline_dict["index"])
-    Children.append(Paramdecls_dict["node"])
+    if not (Paramdecls_dict["node"] == ""):
+        Children.append(Paramdecls_dict["node"])
     Node = Tree('DeclSec', Children)
     out = dict()
     out["node"] = Node
@@ -426,18 +427,26 @@ def ParDecls(j):
 def ParamDecl(j):
     children = []
     dataType_dict = DataType(j)
-    children.append(dataType_dict["node"])
-    parameter_dict = Parameter(dataType_dict["index"])
-    children.append(parameter_dict["node"])
-    doubleColon_dict = Match(Token_type.DOUBLECOLON,parameter_dict["index"])
-    children.append(doubleColon_dict["node"])
-    identify_dict = Match(Token_type.Identifier, doubleColon_dict["index"])
-    children.append(identify_dict["node"])
-    Node = Tree('ParamDecl', children)
-    out = dict()
-    out["node"] = Node
-    out["index"] = identify_dict['index']
-    return out
+    if not (dataType_dict["node"] == ""):
+        children.append(dataType_dict["node"])
+        children.append(dataType_dict["node"])
+        parameter_dict = Parameter(dataType_dict["index"])
+        children.append(parameter_dict["node"])
+        doubleColon_dict = Match(Token_type.DOUBLECOLON, parameter_dict["index"])
+        children.append(doubleColon_dict["node"])
+        identify_dict = Match(Token_type.Identifier, doubleColon_dict["index"])
+        children.append(identify_dict["node"])
+        Node = Tree('ParamDecl', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = identify_dict['index']
+        return out
+    else:
+        out = dict()
+        out["node"] = ""
+        out["index"] = j
+        return out
+
 
 
 def Parameter(j):
@@ -513,6 +522,11 @@ def DataType(j):
         out = dict()
         out["node"] = Node
         out["index"] = character_dict['index']
+        return out
+    else:
+        out = dict()
+        out["node"] = ""
+        out["index"] = j
         return out
 
 
@@ -650,7 +664,7 @@ def Statement(j):
 
 def doStatement(j):
     children = []
-    do_dict = Match(Token_type.DO,j)
+    do_dict = Match(Token_type.DO, j)
     children.append(do_dict["node"])
     identifer_dict = Match(Token_type.Identifier, do_dict["index"])
     children.append(identifer_dict["node"])
@@ -658,7 +672,7 @@ def doStatement(j):
     children.append(equal_dict["node"])
     factor1_dict = Factor(equal_dict["index"])
     children.append(factor1_dict["node"])
-    comma_dict = Match(Token_type.COMMA,factor1_dict["index"])
+    comma_dict = Match(Token_type.COMMA, factor1_dict["index"])
     children.append(comma_dict["node"])
     factor2_dict = Factor(comma_dict["index"])
     children.append(factor2_dict["node"])
@@ -681,6 +695,7 @@ def doStatement(j):
     out["index"] = enddo_dict['index']
     return out
 
+
 def Step(j):
     children = []
     temp = Tokens[j].to_dict()
@@ -701,8 +716,6 @@ def Step(j):
         return out
 
 
-
-
 def Assignment(j):
     children = []
 
@@ -710,9 +723,9 @@ def Assignment(j):
     children.append(identifer_dict["node"])
     equal_dict = Match(Token_type.EqualOp, identifer_dict["index"])
     children.append(equal_dict["node"])
-    expression_dict = Match(Token_type.Constant, equal_dict["index"])
+    expression_dict = BooleanExpression(equal_dict["index"])
     children.append(expression_dict["node"])
-    Node = Tree('DataType', children)
+    Node = Tree('Assignment', children)
     out = dict()
     out["node"] = Node
     out["index"] = expression_dict['index']
@@ -870,6 +883,11 @@ def Printable(j):
         out["node"] = Node
         out["index"] = single_dict['index']
         return out
+    else:
+        out = dict()
+        out["node"] = ""
+        out["index"] = j
+        return out
 
 
 def ifStatement(j):
@@ -902,13 +920,13 @@ def ifStatement(j):
 def Condition(j):
     children = []
 
-    left_par_dict = Match(Token_type.LEFTPARANTHESES,j)
+    left_par_dict = Match(Token_type.LEFTPARANTHESES, j)
     children.append(left_par_dict["node"])
-    expression1 = Match(Token_type.Identifier, left_par_dict["index"])
+    expression1 = BooleanTerm(left_par_dict["index"])
     children.append(expression1["node"])
     relational_dict = RelationalOp(expression1["index"])
     children.append(relational_dict["node"])
-    expression2 = Match(Token_type.Identifier, relational_dict["index"])
+    expression2 = BooleanTerm(relational_dict["index"])
     children.append(expression2["node"])
     right_part_dict = Match(Token_type.RIGHTPARANTHESES, expression2["index"])
     children.append(right_part_dict["node"])
@@ -929,7 +947,7 @@ def ElseClause(j):
         children.append(statements_Dict["node"])
         end_dict = Match(Token_type.ENDIF, statements_Dict["index"])
         if not (end_dict["node"] == ""):
-             children.append(end_dict["node"])
+            children.append(end_dict["node"])
         Node = Tree('ELSEClause', children)
         out = dict()
         out["node"] = Node
@@ -945,6 +963,12 @@ def ElseClause(j):
         out["node"] = Node
         out["index"] = end_dict['index']
         return out
+    else:
+        out = dict()
+        out["node"] = ""
+        out["index"] = j
+        return out
+
 
 def ArthimeticOp(j):
     children = []
@@ -959,7 +983,7 @@ def ArthimeticOp(j):
         out["index"] = mult_dict['index']
         return out
 
-    if temp['token_type'] == Token_type.PlusOp or temp['token_type'] == Token_type.MinusOp:
+    elif temp['token_type'] == Token_type.PlusOp or temp['token_type'] == Token_type.MinusOp:
         AddOp_dict = AddOp(j)
         children.append(AddOp_dict["node"])
         Node = Tree('ArthimeticOp', children)
@@ -973,7 +997,8 @@ def RelationalOp(j):
     children = []
     temp = Tokens[j].to_dict()
 
-    if temp['token_type'] == Token_type.GreaterThanOp or temp['token_type'] == Token_type.LessThanOp or temp['token_type'] == Token_type.GREATERTHANOREQUAL or temp['token_type'] == Token_type.LESSTHANOREQUALOP:
+    if temp['token_type'] == Token_type.GreaterThanOp or temp['token_type'] == Token_type.LessThanOp or temp[
+        'token_type'] == Token_type.GREATERTHANOREQUAL or temp['token_type'] == Token_type.LESSTHANOREQUALOP:
         relOpdict = RelOp(j)
         children.append(relOpdict["node"])
         Node = Tree('RelationalOp', children)
@@ -982,7 +1007,7 @@ def RelationalOp(j):
         out["index"] = relOpdict['index']
         return out
 
-    if temp['token_type'] == Token_type.EQUALCOMP or temp['token_type'] == Token_type.NotEqualOp:
+    elif temp['token_type'] == Token_type.EQUALCOMP or temp['token_type'] == Token_type.NotEqualOp:
         AddOp_dict = EquOp(j)
         children.append(AddOp_dict["node"])
         Node = Tree('RelationalOp', children)
@@ -992,7 +1017,6 @@ def RelationalOp(j):
         return out
 
 
-
 def Factor(j):
     children = []
     temp = Tokens[j].to_dict()
@@ -1000,18 +1024,213 @@ def Factor(j):
     if temp['token_type'] == Token_type.Identifier:
         Identifier_dict = Match(Token_type.Identifier, j)
         children.append(Identifier_dict["node"])
-        Node = Tree('Factor', children)
+        Node = Tree('Identifier Factor', children)
         out = dict()
         out["node"] = Node
         out["index"] = Identifier_dict['index']
         return out
-    if temp['token_type'] == Token_type.Constant:
+    elif temp['token_type'] == Token_type.Constant:
         Constant_dict = Match(Token_type.Constant, j)
         children.append(Constant_dict["node"])
-        Node = Tree('Factor', children)
+        Node = Tree('Constant Factor', children)
         out = dict()
         out["node"] = Node
         out["index"] = Constant_dict['index']
+        return out
+
+    elif temp['token_type'] == Token_type.Dot:
+        boolean_dict = Boolean(j)
+        children.append(boolean_dict["node"])
+        Node = Tree('Boolean Factor', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = boolean_dict['index']
+        return out
+    elif temp['token_type'] == Token_type.LEFTPARANTHESES:
+        left_dict = Match(Token_type.LEFTPARANTHESES, j)
+        children.append(left_dict["node"])
+        boolean_dict = BooleanExpression(left_dict["index"])
+        children.append(boolean_dict["node"])
+        right_dict = Match(Token_type.RIGHTPARANTHESES, boolean_dict["index"])
+        children.append(right_dict["node"])
+        Node = Tree('Boolean Factor', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = right_dict['index']
+        return out
+
+
+##### EXPRESSION ######
+
+def BooleanExpression(j):
+    children = []
+    booleanTerm_dict = BooleanTerm(j)
+    children.append(booleanTerm_dict["node"])
+    boolExp_dict = BoolExp(booleanTerm_dict["index"])
+    children.append(boolExp_dict["node"])
+    Node = Tree('BooleanExpression', children)
+    out = dict()
+    out["node"] = Node
+    out["index"] = boolExp_dict['index']
+    return out
+
+
+def BoolExp(j):
+    children = []
+    temp = Tokens[j].to_dict()
+    if temp['token_type'] == Token_type.Identifier or temp['token_type'] == Token_type.Constant or temp['token_type'] == Token_type.EQUALCOMP or temp['token_type'] == Token_type.NotEqualOp:
+        equOp_dict = EquOp(j)
+        children.append(equOp_dict["node"])
+        booleanterm_dict = BooleanTerm(equOp_dict["index"])
+        children.append(booleanterm_dict["node"])
+        boolExp_dict = BoolExp(booleanterm_dict["index"])
+        if not (boolExp_dict["node"] == ""):
+            children.append(boolExp_dict["node"])
+        Node = Tree('BoolExp', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = boolExp_dict['index']
+        return out
+    else:
+        out = dict()
+        out["node"] = ""
+        out["index"] = j
+        return out
+
+
+def BooleanTerm(j):
+    children = []
+    ArthimeticExpression_dict = ArthimeticExpression(j)
+    children.append(ArthimeticExpression_dict["node"])
+    BoolTer_dict = BoolTer(ArthimeticExpression_dict["index"])
+    children.append(BoolTer_dict["node"])
+    Node = Tree('BooleanTerm', children)
+    out = dict()
+    out["node"] = Node
+    out["index"] = BoolTer_dict['index']
+    return out
+
+
+def BoolTer(j):
+    children = []
+    temp = Tokens[j].to_dict()
+    if temp['token_type'] == Token_type.GreaterThanOp or temp['token_type'] == Token_type.LessThanOp or temp['token_type'] == Token_type.GREATERTHANOREQUAL or temp['token_type'] == Token_type.LESSTHANOREQUALOP:
+        RelOp_dict = RelOp(j)
+        children.append(RelOp_dict["node"])
+        ArthimeticExpression_dict = ArthimeticExpression(RelOp_dict["index"])
+        children.append(ArthimeticExpression_dict["node"])
+        BoolTer_dict = BoolTer(ArthimeticExpression_dict["index"])
+        if not (BoolTer_dict["node"] == ""):
+            children.append(BoolTer_dict["node"])
+        Node = Tree('BooleanTerm', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = BoolTer_dict['index']
+        return out
+    else:
+        out = dict()
+        out["node"] = ""
+        out["index"] = j
+        return out
+
+
+def ArthimeticExpression(j):
+    children = []
+    term_dict = Term(j)
+    children.append(term_dict["node"])
+    exp_dict = Exp(term_dict["index"])
+    children.append(exp_dict["node"])
+    Node = Tree('ArthimeticExpression', children)
+    out = dict()
+    out["node"] = Node
+    out["index"] = exp_dict['index']
+    return out
+
+def Boolean(j):
+    children = []
+    dot1_dict = Match(Token_type.Dot, j)
+    children.append(dot1_dict["node"])
+    bool_dict = Bool(dot1_dict["index"])
+    children.append(bool_dict["node"])
+    dot2_dict = Match(Token_type.Dot, bool_dict["index"])
+    children.append(dot2_dict["node"])
+    Node = Tree('Boolean', children)
+    out = dict()
+    out["node"] = Node
+    out["index"] = dot2_dict['index']
+    return out
+
+def Bool(j):
+    children = []
+    temp = Tokens[j].to_dict()
+    if temp['token_type'] == Token_type.TRUE:
+        true_dict = Match(Token_type.TRUE, j)
+        children.append(true_dict["node"])
+        Node = Tree('true_dict', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = true_dict['index']
+        return out
+    elif temp['token_type'] == Token_type.FALSE:
+        FALSE_dict = Match(Token_type.TRUE, j)
+        children.append(FALSE_dict["node"])
+        Node = Tree('FALSE_dict', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = FALSE_dict['index']
+        return out
+
+def Exp(j):
+    children = []
+    temp = Tokens[j].to_dict()
+    if temp['token_type'] == Token_type.PlusOp or temp['token_type'] == Token_type.MinusOp:
+        addOp_dict = AddOp(j)
+        children.append(addOp_dict["node"])
+        term_dict = Term(addOp_dict["index"])
+        children.append(term_dict["node"])
+        exp_dict = Exp(term_dict["index"])
+        if not (exp_dict["node"] == ""):
+            children.append(exp_dict["node"])
+        Node = Tree('ArthimeticExpression', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = exp_dict['index']
+        return out
+    else:
+        out = dict()
+        out["node"] = ""
+        out["index"] = j
+        return out
+
+
+def Term(j):
+    children = []
+    factor_dict = Factor(j)
+    children.append(factor_dict["node"])
+    ter_dict = Ter(factor_dict["index"])
+    children.append(ter_dict["node"])
+    Node = Tree('Term', children)
+    out = dict()
+    out["node"] = Node
+    out["index"] = ter_dict['index']
+    return out
+
+
+def Ter(j):
+    children = []
+    temp = Tokens[j].to_dict()
+    if temp['token_type'] == Token_type.MultiplyOp or temp['token_type'] == Token_type.MinusOp:
+        MultOp_dict = MultOp(j)
+        children.append(MultOp_dict["node"])
+        factor_dict = Factor(MultOp_dict["index"])
+        children.append(factor_dict["node"])
+        ter_dict = Ter(factor_dict["index"])
+        if not (ter_dict["node"] == ""):
+            children.append(ter_dict["node"])
+        Node = Tree('Ter', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = ter_dict['index']
         return out
     else:
         out = dict()
@@ -1032,7 +1251,7 @@ def AddOp(j):
         out["node"] = Node
         out["index"] = plusop_dict['index']
         return out
-    if temp['token_type'] == Token_type.MinusOp:
+    elif temp['token_type'] == Token_type.MinusOp:
         MinusOp_dict = Match(Token_type.MinusOp, j)
         children.append(MinusOp_dict["node"])
         Node = Tree('AddOp', children)
@@ -1040,6 +1259,7 @@ def AddOp(j):
         out["node"] = Node
         out["index"] = MinusOp_dict['index']
         return out
+
 
 
 def MultOp(j):
@@ -1054,10 +1274,10 @@ def MultOp(j):
         out["node"] = Node
         out["index"] = MultiplyOp_dict['index']
         return out
-    if temp['token_type'] == Token_type.DivideOp:
+    elif temp['token_type'] == Token_type.DivideOp:
         DivideOp_dict = Match(Token_type.DivideOp, j)
         children.append(DivideOp_dict["node"])
-        Node = Tree('MultOp', children)
+        Node = Tree('DivideOp', children)
         out = dict()
         out["node"] = Node
         out["index"] = DivideOp_dict['index']
@@ -1071,32 +1291,32 @@ def RelOp(j):
     if temp['token_type'] == Token_type.GreaterThanOp:
         GreaterThanOp_dict = Match(Token_type.GreaterThanOp, j)
         children.append(GreaterThanOp_dict["node"])
-        Node = Tree('RelOp', children)
+        Node = Tree('GreaterThanOp', children)
         out = dict()
         out["node"] = Node
         out["index"] = GreaterThanOp_dict['index']
         return out
-    if temp['token_type'] == Token_type.LessThanOp:
+    elif temp['token_type'] == Token_type.LessThanOp:
         LessThanOp_dict = Match(Token_type.LessThanOp, j)
         children.append(LessThanOp_dict["node"])
-        Node = Tree('RelOp', children)
+        Node = Tree('LessThanOp', children)
         out = dict()
         out["node"] = Node
         out["index"] = LessThanOp_dict['index']
         return out
 
-    if temp['token_type'] == Token_type.GREATERTHANOREQUAL:
+    elif temp['token_type'] == Token_type.GREATERTHANOREQUAL:
         GREATERTHANOREQUALOp_dict = Match(Token_type.GREATERTHANOREQUAL, j)
         children.append(GREATERTHANOREQUALOp_dict["node"])
-        Node = Tree('RelOp', children)
+        Node = Tree('GREATERTHANOREQUAL', children)
         out = dict()
         out["node"] = Node
         out["index"] = GREATERTHANOREQUALOp_dict['index']
         return out
-    if temp['token_type'] == Token_type.LESSTHANOREQUALOP:
+    elif temp['token_type'] == Token_type.LESSTHANOREQUALOP:
         LESSTHANOREQUALOP_dict = Match(Token_type.LESSTHANOREQUALOP, j)
         children.append(LESSTHANOREQUALOP_dict["node"])
-        Node = Tree('RelOp', children)
+        Node = Tree('LESSTHANOREQUALOP', children)
         out = dict()
         out["node"] = Node
         out["index"] = LESSTHANOREQUALOP_dict['index']
@@ -1115,7 +1335,7 @@ def EquOp(j):
         out["node"] = Node
         out["index"] = EqualCompt_dict['index']
         return out
-    if temp['token_type'] == Token_type.NotEqualOp:
+    elif temp['token_type'] == Token_type.NotEqualOp:
         NotEqualOp_dict = Match(Token_type.NotEqualOp, j)
         children.append(NotEqualOp_dict["node"])
         Node = Tree('NotEquoOp', children)
