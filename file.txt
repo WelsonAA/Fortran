@@ -1,0 +1,9 @@
+PROGRAM XY
+IF ( X == Y ) THEN
+p = 5
+ELSE
+o = 3
+ENDIF
+DO welson = 5 , 6 , 5
+pl = 6
+ENDDO
