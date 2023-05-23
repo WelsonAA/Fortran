@@ -124,9 +124,9 @@ Operators = {".": Token_type.Dot,
              }
 Tokens = []  # to add tokens to list
 errors=[]
-
+TokensWithoutComments=[]
 def find_token(text):
-    TokensWithoutComments=[]
+
     #tokens = re.findall(r'\w+|[\=\+\-\*\/\<\>\(\)\{\}\'\"\n\:\[\]\,\!\." "]', text)
     tokens = re.findall(r'\w+|[^\w+]|[+]', text)
     print(tokens)
@@ -494,7 +494,7 @@ def Endlines(j):
 
 def Elines(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.NEWLINE:
         endLineDash_dict = EndlineDash(j)
         children.append(endLineDash_dict["node"])
@@ -560,7 +560,7 @@ def ParamDecls(j):
 
 def ParDecls(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.NEWLINE:
         endlines_dict = Endlines(j)
         children.append(endlines_dict["node"])
@@ -586,7 +586,6 @@ def ParamDecl(j):
     dataType_dict = DataType(j)
     if not (dataType_dict["node"] == ""):
         children.append(dataType_dict["node"])
-        children.append(dataType_dict["node"])
         parameter_dict = Parameter(dataType_dict["index"])
         children.append(parameter_dict["node"])
         doubleColon_dict = Match(Token_type.DOUBLECOLON, parameter_dict["index"])
@@ -609,7 +608,7 @@ def ParamDecl(j):
 def Parameter(j):
     children = []
 
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
 
     if temp['token_type'] == Token_type.COMMA:
         comma_dict = Match(Token_type.COMMA, j)
@@ -635,7 +634,7 @@ def Parameter(j):
 
 def Expression(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
 
     if temp['token_type'] == Token_type.SINGLEQUOTATION:
         stringSingleOp_dict = StringSingle(j)
@@ -695,7 +694,7 @@ def StringDouble(j):
 
 def DataType(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
 
     if temp['token_type'] == Token_type.INTEGER:
         integer_dict = Match(Token_type.INTEGER, j)
@@ -776,7 +775,7 @@ def CharacterFun(j):
 
 def Block(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.NEWLINE:
         statements_dict = Statements(j)
         children.append(statements_dict["node"])
@@ -810,7 +809,7 @@ def Statements(j):
 
 def State(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.NEWLINE:
         endlines_dict = Endlines(j)
         children.append(endlines_dict["node"])
@@ -833,7 +832,7 @@ def State(j):
 
 def Statement(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
 
     if temp['token_type'] == Token_type.Identifier:
         assignment_dict = Assignment(j)
@@ -920,7 +919,7 @@ def doStatement(j):
 
 def Step(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.COMMA:
         comma_dict = Match(Token_type.COMMA, j)
         children.append(comma_dict["node"])
@@ -986,7 +985,7 @@ def VarDecls(j):
 
 def VDecls(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.COMMA:
         VarDecl_dict = VarDecl(j)
         children.append(VarDecl_dict["node"])
@@ -1050,7 +1049,7 @@ def PrintDecls(j):
 
 def PDecls(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.COMMA:
         PrintDecl_dict = PrintDecl(j)
         children.append(PrintDecl_dict["node"])
@@ -1087,7 +1086,7 @@ def PrintDecl(j):
 
 def Printable(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.Identifier:
         Identifier_dict = Match(Token_type.Identifier, j)
         if not (Identifier_dict["node"] == ""):
@@ -1171,7 +1170,7 @@ def Condition(j):
 
 def ElseClause(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.Else:
         else_dict = Match(Token_type.Else, j)
         children.append(else_dict["node"])
@@ -1204,7 +1203,7 @@ def ElseClause(j):
 
 def ArthimeticOp(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
 
     if temp['token_type'] == Token_type.MultiplyOp or temp['token_type'] == Token_type.DivideOp:
         mult_dict = MultOp(j)
@@ -1227,7 +1226,7 @@ def ArthimeticOp(j):
 
 def RelationalOp(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
 
     if temp['token_type'] == Token_type.GreaterThanOp or temp['token_type'] == Token_type.LessThanOp or temp[
         'token_type'] == Token_type.GREATERTHANOREQUAL or temp['token_type'] == Token_type.LESSTHANOREQUALOP:
@@ -1251,7 +1250,7 @@ def RelationalOp(j):
 
 def Factor(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
 
     if temp['token_type'] == Token_type.Identifier:
         Identifier_dict = Match(Token_type.Identifier, j)
@@ -1309,7 +1308,7 @@ def BooleanExpression(j):
 
 def BoolExp(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.Identifier or temp['token_type'] == Token_type.Constant or temp['token_type'] == Token_type.EQUALCOMP or temp['token_type'] == Token_type.NotEqualOp:
         equOp_dict = EquOp(j)
         children.append(equOp_dict["node"])
@@ -1345,7 +1344,7 @@ def BooleanTerm(j):
 
 def BoolTer(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.GreaterThanOp or temp['token_type'] == Token_type.LessThanOp or temp['token_type'] == Token_type.GREATERTHANOREQUAL or temp['token_type'] == Token_type.LESSTHANOREQUALOP:
         RelOp_dict = RelOp(j)
         children.append(RelOp_dict["node"])
@@ -1394,7 +1393,7 @@ def Boolean(j):
 
 def Bool(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.TRUE:
         true_dict = Match(Token_type.TRUE, j)
         children.append(true_dict["node"])
@@ -1414,7 +1413,7 @@ def Bool(j):
 
 def Exp(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.PlusOp or temp['token_type'] == Token_type.MinusOp:
         addOp_dict = AddOp(j)
         children.append(addOp_dict["node"])
@@ -1450,7 +1449,7 @@ def Term(j):
 
 def Ter(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
     if temp['token_type'] == Token_type.MultiplyOp or temp['token_type'] == Token_type.DivideOp:
         MultOp_dict = MultOp(j)
         children.append(MultOp_dict["node"])
@@ -1473,7 +1472,7 @@ def Ter(j):
 
 def AddOp(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
 
     if temp['token_type'] == Token_type.PlusOp:
         plusop_dict = Match(Token_type.PlusOp, j)
@@ -1496,7 +1495,7 @@ def AddOp(j):
 
 def MultOp(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
 
     if temp['token_type'] == Token_type.MultiplyOp:
         MultiplyOp_dict = Match(Token_type.MultiplyOp, j)
@@ -1518,7 +1517,7 @@ def MultOp(j):
 
 def RelOp(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
 
     if temp['token_type'] == Token_type.GreaterThanOp:
         GreaterThanOp_dict = Match(Token_type.GreaterThanOp, j)
@@ -1557,7 +1556,7 @@ def RelOp(j):
 
 def EquOp(j):
     children = []
-    temp = Tokens[j].to_dict()
+    temp = TokensWithoutComments[j].to_dict()
 
     if temp['token_type'] == Token_type.EQUALCOMP:
         EqualCompt_dict = Match(Token_type.EQUALCOMP, j)
@@ -1580,7 +1579,7 @@ def EquOp(j):
 def Match(a, j):
     output = dict()
     if j < len(Tokens):
-        Temp = Tokens[j].to_dict()
+        Temp = TokensWithoutComments[j].to_dict()
         if Temp['token_type'] == a:
             j += 1
             output["node"] = [Temp['Lex']]
@@ -1620,7 +1619,7 @@ def Scan():
     with open(filename, 'r') as f:
         x1 = f.read()
         find_token(x1)
-        df = pandas.DataFrame.from_records([t.to_dict() for t in Tokens])
+        df = pandas.DataFrame.from_records([t.to_dict() for t in TokensWithoutComments])
     # print(df)
 
     # to display token stream as table
