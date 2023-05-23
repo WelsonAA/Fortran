@@ -6,6 +6,7 @@ import pandastable as pt
 from nltk.tree import *
 
 
+
 class Token_type(Enum):  # listing all tokens type
 
     Implicit = 1
@@ -54,11 +55,12 @@ class Token_type(Enum):  # listing all tokens type
     BLOCKNAME = 45
     LEFTBRACKET = 46  # [
     RIGHTBRACKET = 47  # ]
-    # SPACE = 48  # ]
+    #SPACE = 48  # ]
     COMMENTED = 49
     DOUBLECOLON = 50
     ENDIF = 51
     ENDDO = 52
+    STRING= 53
 
 
 # class token to hold string and token type
@@ -92,12 +94,12 @@ ReservedWords = {
     "READ": Token_type.READ,
     "PRINT": Token_type.PRINT,
     "LOGICAL": Token_type.LOGICAL,
-    "TRUE": Token_type.TRUE,
-    "FALSE": Token_type.FALSE,
+    #"TRUE": Token_type.TRUE,
+    #"FALSE": Token_type.FALSE,
     "\n": Token_type.NEWLINE,
     "ENDIF": Token_type.ENDIF,
-    "ENDDO": Token_type.ENDDO
-    # " ": Token_type.SPACE,
+    "ENDDO":Token_type.ENDDO
+    #" ": Token_type.SPACE,
 }
 Operators = {".": Token_type.Dot,
              "=": Token_type.EqualOp,
@@ -116,27 +118,21 @@ Operators = {".": Token_type.Dot,
              "\"": Token_type.DOUBLEQUOTATION,
              ":": Token_type.SINGLECOLON,
              "==": Token_type.EQUALCOMP,
-             "/=": Token_type.NotEqualOp,
              ">=": Token_type.GREATERTHANOREQUAL,
              "<=": Token_type.LESSTHANOREQUALOP,
              "::": Token_type.DOUBLECOLON
              }
-Tokens = []
-errors = []
-
+Tokens = []  # to add tokens to list
+errors=[]
 
 def find_token(text):
-    tokens = re.findall(r'\w+|[\=\+\-\*\/\<\>\(\)\{\}\'\"\n\:\[\]\,\!\." "]', text)
+    #tokens = re.findall(r'\w+|[\=\+\-\*\/\<\>\(\)\{\}\'\"\n\:\[\]\,\!\." "]', text)
+    tokens = re.findall(r'\w+|[^\w+]|[+]', text)
     print(tokens)
     i = 0
-    """while i<len(tokens):
-        if(tokens[i]=="="and tokens[i+1]=="="):
-            Tokens.append(token(i, Token_type.EQUALCOMP))
-            i+=1
-        i+=1"""
     while i < len(tokens):
-        if tokens[i] == " ":
-            i = i + 1
+        if tokens[i]==" ":
+            i=i+1
             continue
         elif tokens[i] == "!":
             t = token()
@@ -152,10 +148,11 @@ def find_token(text):
                 else:
                     break
             i = j
-            s = token()
-            s.lex = comments
-            s.token_type = Token_type.COMMENTED
-            Tokens.append(s)
+            if(comments!=""):
+                s = token()
+                s.lex = comments
+                s.token_type = Token_type.COMMENTED
+                Tokens.append(s)
 
         elif str(tokens[i]).upper() in ReservedWords:
             if str(tokens[i]).upper() == "END" and i + 2 < len(tokens):
@@ -165,7 +162,7 @@ def find_token(text):
                     t.token_type = Token_type.ENDIF
                     Tokens.append(t)
                     i = i + 2
-                elif str(tokens[i + 2]).upper() == "DO":
+                elif str(tokens[i+2]).upper()=="DO":
                     t = token()
                     t.lex = "ENDDO"
                     t.token_type = Token_type.ENDDO
@@ -181,29 +178,154 @@ def find_token(text):
                 t.lex = str(tokens[i]).upper()
                 t.token_type = ReservedWords[str(tokens[i]).upper()]
                 Tokens.append(t)
-        elif (re.match("^[a-zA-Z][a-zA-z0-9]*$", tokens[i])):
+        elif re.match(r"^[a-zA-Z][a-zA-z0-9]*$", tokens[i]):
             t = token()
             t.lex = str(tokens[i]).upper()
             t.token_type = Token_type.Identifier
             Tokens.append(t)
         elif tokens[i] in Operators:
-            if tokens[i] == "=" and i + 1 < len(tokens):
+            if tokens[i]=="." and i + 1 < len(tokens):
+                if str(tokens[i+1]).upper()=="TRUE":
+                    if i+2<len(tokens):
+                        if tokens[i+2]==".":
+                            t=token()
+                            t.lex=str(tokens[i]+tokens[i+1]+tokens[i+2])
+                            t.token_type=Token_type.TRUE
+                            Tokens.append(t)
+                            i=i+2
+                        else:
+                            t=token()
+                            t.lex=str(tokens[i]+tokens[i+1])
+                            t.token_type=Token_type.Error
+                            Tokens.append(t)
+                            i=i+1
+                    else:
+                        t = token()
+                        t.lex = str(tokens[i] + tokens[i + 1])
+                        t.token_type = Token_type.Error
+                        Tokens.append(t)
+                        i = i + 1
+                elif str(tokens[i+1]).upper()=="FALSE":
+                    if i+2<len(tokens):
+                        if tokens[i+2]==".":
+                            t=token()
+                            t.lex=str(tokens[i]+tokens[i+1]+tokens[i+2])
+                            t.token_type=Token_type.FALSE
+                            Tokens.append(t)
+                            i=i+2
+                        else:
+                            t=token()
+                            t.lex=str(tokens[i]+tokens[i+1])
+                            t.token_type=Token_type.Error
+                            Tokens.append(t)
+                            i=i+1
+                    else:
+                        t = token()
+                        t.lex = str(tokens[i] + tokens[i + 1])
+                        t.token_type = Token_type.Error
+                        Tokens.append(t)
+                        i = i + 1
+                else:
+                    t=token()
+                    t.lex=str(tokens[i])
+                    t.token_type=Token_type.Dot
+                    Tokens.append(t)
+            elif tokens[i] == "'" and i + 1 < len(tokens):
+                j = i + 1
+                string = ""
+                while j < len(tokens):
+                    if tokens[j] == "'":
+                        break
+                    elif tokens[j]=="\n":
+                        break
+                    else:
+                        string += tokens[j]
+                        j += 1
+                if j<len(tokens):
+                    if tokens[j]=="'":
+                        t=token()
+                        t.lex= tokens[i]
+                        t.token_type= Token_type.SINGLEQUOTATION
+                        Tokens.append(t)
+                        if string != "":
+                            s = token()
+                            s.lex = str(string)
+                            s.token_type = Token_type.STRING
+                            Tokens.append(s)
+                        d= token()
+                        d.lex=str(tokens[j])
+                        d.token_type =Token_type.SINGLEQUOTATION
+                        Tokens.append(d)
+                    if tokens[j]=="\n":
+                        t=token()
+                        t.lex=str(tokens[i]+string)
+                        t.token_type=Token_type.Error
+                        Tokens.append(t)
+                        s=token()
+                        s.lex=str(tokens[j])
+                        s.token_type=Token_type.NEWLINE
+                else:
+                    t = token()
+                    t.lex = str(tokens[i] + string)
+                    t.token_type = Token_type.Error
+                    Tokens.append(t)
+                i=j
+            elif tokens[i]=="'":
+                t=token()
+                t.lex=str(tokens[i])
+                t.token_type=Token_type.Error
+                Tokens.append(t)
+
+            elif tokens[i]=="\"" and i + 1 < len(tokens):
+                j = i + 1
+                string = ""
+                while j < len(tokens):
+                    if tokens[j] == "\"":
+                        break
+                    elif tokens[j] == "\n":
+                        break
+                    else:
+                        string += tokens[j]
+                        j += 1
+                if j < len(tokens):
+                    if tokens[j] == "\"":
+                        t = token()
+                        t.lex = tokens[i]
+                        t.token_type = Token_type.DOUBLEQUOTATION
+                        Tokens.append(t)
+                        if string != "":
+                            s = token()
+                            s.lex = str(string)
+                            s.token_type = Token_type.STRING
+                            Tokens.append(s)
+                        d = token()
+                        d.lex = str(tokens[j])
+                        d.token_type = Token_type.DOUBLEQUOTATION
+                        Tokens.append(d)
+                    if tokens[j] == "\n":
+                        t = token()
+                        t.lex = str(tokens[i] + string)
+                        t.token_type = Token_type.Error
+                        Tokens.append(t)
+                        s = token()
+                        s.lex = str(tokens[j])
+                        s.token_type = Token_type.NEWLINE
+                else:
+                    t = token()
+                    t.lex = str(tokens[i] + string)
+                    t.token_type = Token_type.Error
+                    Tokens.append(t)
+                i = j
+            elif tokens[i]=="\"":
+                t=token()
+                t.lex=str(tokens[i])
+                t.token_type=Token_type.Error
+                Tokens.append(t)
+            elif tokens[i] == "=" and i + 1 < len(tokens):
                 if tokens[i + 1] == "=":
                     t = token()
                     t.lex = "=="
                     t.token_type = Operators["=="]
-                    Tokens.append(t)
-                    i = i + 1
-                else:
-                    t = token()
-                    t.lex = "="
-                    t.token_type = Operators["="]
-                    Tokens.append(t)
-            elif tokens[i] == "/" and i + 1 < len(tokens):
-                if tokens[i + 1] == "=":
-                    t = token()
-                    t.lex = "/="
-                    t.token_type = Operators["/="]
                     Tokens.append(t)
                     i = i + 1
                 else:
@@ -253,20 +375,47 @@ def find_token(text):
                 t.lex = str(tokens[i]).upper()
                 t.token_type = Operators[tokens[i]]
                 Tokens.append(t)
-        elif re.match("([0-9]+)+(.[0-9]*)?", tokens[i]):
-            t = token()
-            t.lex = str(tokens[i]).upper()
-            t.token_type = Token_type.Constant
-            Tokens.append(t)
+        elif re.match(r"\d+", tokens[i]) and not re.search(r"[a-zA-Z]+",tokens[i]):
+            #([0-9]+)+(\.[0-9]*)?  -?\d+(.\d+)?
+            if i+1<len(tokens):
+                if tokens[i+1]=="." and i+2<len(tokens):
+                    if re.match(r"\d+", tokens[i+2]) and not re.search(r"[a-zA-Z]+",tokens[i+2]):
+                        t = token()
+                        t.lex = str(tokens[i]+tokens[i+1]+tokens[i+2]).upper()
+                        t.token_type = Token_type.Constant
+                        Tokens.append(t)
+                        i=i+2
+                    else:
+                        t = token()
+                        t.lex = str(tokens[i]+tokens[i+1]+tokens[i+2]).upper()
+                        t.token_type = Token_type.Error
+                        Tokens.append(t)
+                        i=i+2
+                elif tokens[i + 1] == ".":
+                    t = token()
+                    t.lex = str(tokens[i] + tokens[i + 1]).upper()
+                    t.token_type = Token_type.Error
+                    Tokens.append(t)
+                    i=i+1
+                else:
+                    t = token()
+                    t.lex = str(tokens[i]).upper()
+                    t.token_type = Token_type.Constant
+                    Tokens.append(t)
+            else :
+                t = token()
+                t.lex = str(tokens[i]).upper()
+                t.token_type = Token_type.Constant
+                Tokens.append(t)
         else:
             t = token()
             t.lex = str(tokens[i]).upper()
             t.token_type = Token_type.Error
             Tokens.append(t)
-            break
         i += 1
 
 
+# complete
 def Parse():
     j = 0
     Children = []
@@ -475,6 +624,36 @@ def Parameter(j):
         return out
 
 
+def StringSingle(j):
+    children = []
+    left_single_dict=Match(Token_type.SINGLEQUOTATION,j)
+    children.append(left_single_dict["node"])
+    string_dict=Match(Token_type.STRING,left_single_dict["index"])
+    children.append(string_dict["node"])
+    right_single_dict = Match(Token_type.SINGLEQUOTATION, string_dict["index"])
+    children.append(right_single_dict["node"])
+    Node = Tree('StringSingle', children)
+    out = dict()
+    out["node"] = Node
+    out["index"] = right_single_dict['index']
+    return out
+
+def StringDouble(j):
+    children = []
+    left_double_dict=Match(Token_type.DOUBLEQUOTATION,j)
+    children.append(left_double_dict["node"])
+    string_dict=Match(Token_type.STRING,left_double_dict["index"])
+    children.append(string_dict["node"])
+    right_double_dict = Match(Token_type.DOUBLEQUOTATION, string_dict["index"])
+    children.append(right_double_dict["node"])
+    Node = Tree('StringDouble', children)
+    out = dict()
+    out["node"] = Node
+    out["index"] = right_double_dict['index']
+    return out
+
+
+
 def DataType(j):
     children = []
     temp = Tokens[j].to_dict()
@@ -550,6 +729,10 @@ def CharacterFun(j):
     out["node"] = Node
     out["index"] = rightPara_dict['index']
     return out
+
+
+
+
 
 
 def Block(j):
@@ -718,12 +901,13 @@ def Step(j):
 
 def Assignment(j):
     children = []
-
     identifer_dict = Match(Token_type.Identifier, j)
     children.append(identifer_dict["node"])
     equal_dict = Match(Token_type.EqualOp, identifer_dict["index"])
     children.append(equal_dict["node"])
-    expression_dict = BooleanExpression(equal_dict["index"])
+    #expression_dict = BooleanExpression(equal_dict["index"])
+    #children.append(expression_dict["node"])
+    expression_dict = StringDouble(equal_dict["index"])
     children.append(expression_dict["node"])
     Node = Tree('Assignment', children)
     out = dict()
@@ -1219,7 +1403,7 @@ def Term(j):
 def Ter(j):
     children = []
     temp = Tokens[j].to_dict()
-    if temp['token_type'] == Token_type.MultiplyOp or temp['token_type'] == Token_type.MinusOp:
+    if temp['token_type'] == Token_type.MultiplyOp or temp['token_type'] == Token_type.DivideOp:
         MultOp_dict = MultOp(j)
         children.append(MultOp_dict["node"])
         factor_dict = Factor(MultOp_dict["index"])
