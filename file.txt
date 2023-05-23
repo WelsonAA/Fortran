@@ -1,4 +1,8 @@
-program xy
+program ifProg
 implicit none
-x="mina gamed"
-end program xy
+integer::a
+if  (a == 20) then
+print*, "a is less than 20"
+endif
+print*, "value of a is ", a
+end program ifProg

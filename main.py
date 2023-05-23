@@ -1090,13 +1090,22 @@ def Printable(j):
         out["index"] = Identifier_dict['index']
         return out
     elif temp['token_type'] == Token_type.SINGLEQUOTATION:
-        single_dict = Match(Token_type.SINGLEQUOTATION, j)
+        single_dict = StringSingle(j)
         if not (single_dict["node"] == ""):
             children.append(single_dict["node"])
         Node = Tree('Printable', children)
         out = dict()
         out["node"] = Node
         out["index"] = single_dict['index']
+        return out
+    elif temp['token_type'] == Token_type.DOUBLEQUOTATION:
+        double_dict = StringDouble(j)
+        if not (double_dict["node"] == ""):
+            children.append(double_dict["node"])
+        Node = Tree('Printable', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = double_dict['index']
         return out
     else:
         out = dict()
@@ -1137,11 +1146,11 @@ def Condition(j):
 
     left_par_dict = Match(Token_type.LEFTPARANTHESES, j)
     children.append(left_par_dict["node"])
-    expression1 = BooleanTerm(left_par_dict["index"])
+    expression1 = ArthimeticExpression(left_par_dict["index"])
     children.append(expression1["node"])
     relational_dict = RelationalOp(expression1["index"])
     children.append(relational_dict["node"])
-    expression2 = BooleanTerm(relational_dict["index"])
+    expression2 = ArthimeticExpression(relational_dict["index"])
     children.append(expression2["node"])
     right_part_dict = Match(Token_type.RIGHTPARANTHESES, expression2["index"])
     children.append(right_part_dict["node"])
