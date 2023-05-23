@@ -1,6 +1,6 @@
 program ifProg
 implicit none
-integer::a
+integer::a !hiiii
 if  (a == 20) then
 print*, "a is less than 20"
 endif

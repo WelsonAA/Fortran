@@ -126,6 +126,7 @@ Tokens = []  # to add tokens to list
 errors=[]
 
 def find_token(text):
+    TokensWithoutComments=[]
     #tokens = re.findall(r'\w+|[\=\+\-\*\/\<\>\(\)\{\}\'\"\n\:\[\]\,\!\." "]', text)
     tokens = re.findall(r'\w+|[^\w+]|[+]', text)
     print(tokens)
@@ -147,7 +148,7 @@ def find_token(text):
                     j += 1
                 else:
                     break
-            i = j
+            i = j-1
             if(comments!=""):
                 s = token()
                 s.lex = comments
@@ -413,6 +414,13 @@ def find_token(text):
             t.token_type = Token_type.Error
             Tokens.append(t)
         i += 1
+    ind=0
+    while ind<len(Tokens):
+        if Tokens[ind].token_type!=Token_type.COMMENTOP and Tokens[ind].token_type!=Token_type.COMMENTED:
+            TokensWithoutComments.append(Tokens[ind])
+        ind+=1
+    xm=0
+
 
 
 # complete
