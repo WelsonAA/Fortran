@@ -1,8 +1,26 @@
-program ifProg
-implicit none
-integer::a !hiiii
-if  (a == 20) then
-print*, "a is less than 20"
-endif
-print*, "value of a is ", a
-end program ifProg
+program Fibonacci
+   implicit none
+
+    integer :: f1,f2,f3,i
+
+    i = 1
+    f1 = 0
+    f2 = 1
+
+    do
+        f3 = f2 + f1
+        f1 = f2
+        f2 = f3
+        i = i + 1
+        if (f1<10) then
+            print* ,'(I1, A, $)', f1
+
+        else
+            print* , '(I3, A, $)', f1
+        end if
+
+    end do
+
+    print *, '...'
+
+    end program Fibonacci

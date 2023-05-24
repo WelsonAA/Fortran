@@ -590,9 +590,48 @@ def ParamDecl(j):
         children.append(parameter_dict["node"])
         doubleColon_dict = Match(Token_type.DOUBLECOLON, parameter_dict["index"])
         children.append(doubleColon_dict["node"])
-        identify_dict = Match(Token_type.Identifier, doubleColon_dict["index"])
-        children.append(identify_dict["node"])
+        possible_identify = declartionChoose(doubleColon_dict["index"])
+        children.append(possible_identify["node"])
         Node = Tree('ParamDecl', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = possible_identify['index']
+        return out
+    else:
+        out = dict()
+        out["node"] = ""
+        out["index"] = j
+        return out
+
+
+def declartionChoose(j):
+    children = []
+
+
+    temp = TokensWithoutComments[j].to_dict()
+    temp1 = TokensWithoutComments[j+1].to_dict()
+    if temp1['token_type'] == Token_type.COMMA:
+        identify_dict = Match(Token_type.Identifier, j)
+        children.append(identify_dict["node"])
+        vardict = VarDecls(identify_dict["index"])
+        children.append(vardict["node"])
+        Node = Tree('declartionChoose', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = vardict['index']
+        return out
+    elif temp1['token_type'] == Token_type.EqualOp:
+        identify_dict = Assignment(j)
+        children.append(identify_dict["node"])
+        Node = Tree('declartionChoose', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = identify_dict['index']
+        return out
+    elif temp['token_type'] == Token_type.Identifier:
+        identify_dict = Match(Token_type.Identifier, j)
+        children.append(identify_dict["node"])
+        Node = Tree('declartionChoose', children)
         out = dict()
         out["node"] = Node
         out["index"] = identify_dict['index']
@@ -602,7 +641,6 @@ def ParamDecl(j):
         out["node"] = ""
         out["index"] = j
         return out
-
 
 
 def Parameter(j):
@@ -652,7 +690,7 @@ def Expression(j):
         out["node"] = Node
         out["index"] = stringDouble_dict['index']
         return out
-    elif temp['token_type'] == Token_type.INTEGER or temp['token_type'] == Token_type.Constant or temp['token_type'] == Token_type.Dot:
+    elif temp['token_type'] == Token_type.Identifier or temp['token_type'] == Token_type.Constant or temp['token_type'] == Token_type.Dot:
         boolean_dict = BooleanExpression(j)
         children.append(boolean_dict["node"])
         Node = Tree('Boolean Exp',children)
@@ -887,34 +925,50 @@ def doStatement(j):
     children = []
     do_dict = Match(Token_type.DO, j)
     children.append(do_dict["node"])
-    identifer_dict = Match(Token_type.Identifier, do_dict["index"])
-    children.append(identifer_dict["node"])
-    equal_dict = Match(Token_type.EqualOp, identifer_dict["index"])
-    children.append(equal_dict["node"])
-    factor1_dict = Factor(equal_dict["index"])
-    children.append(factor1_dict["node"])
-    comma_dict = Match(Token_type.COMMA, factor1_dict["index"])
-    children.append(comma_dict["node"])
-    factor2_dict = Factor(comma_dict["index"])
-    children.append(factor2_dict["node"])
-    step_dict = Step(factor2_dict["index"])
-    children.append(step_dict["node"])
 
-    endlines_dict = Endlines(step_dict["index"])
+    do_work_dict = doWork(do_dict["index"])
+    children.append(do_work_dict["node"])
+    endlines_dict = Endlines(do_work_dict["index"])
     children.append(endlines_dict["node"])
 
-    statement_dict = Statement(endlines_dict["index"])
+    statement_dict = Statements(endlines_dict["index"])
     children.append(statement_dict["node"])
-
-    endlines1_dict = Elines(statement_dict["index"])
-    children.append(endlines1_dict["node"])
-    enddo_dict = Match(Token_type.ENDDO, endlines1_dict["index"])
+    # endlines1_dict = Endlines(statement_dict["index"])
+    # children.append(endlines1_dict["node"])
+    enddo_dict = Match(Token_type.ENDDO, statement_dict["index"])
     children.append(enddo_dict["node"])
     Node = Tree('Do Statement', children)
     out = dict()
     out["node"] = Node
     out["index"] = enddo_dict['index']
     return out
+
+def doWork(j):
+    children = []
+    temp = TokensWithoutComments[j].to_dict()
+    if temp['token_type'] == Token_type.Identifier:
+        identifer_dict = Match(Token_type.Identifier, j)
+        children.append(identifer_dict["node"])
+        equal_dict = Match(Token_type.EqualOp, identifer_dict["index"])
+        children.append(equal_dict["node"])
+        factor1_dict = Factor(equal_dict["index"])
+        children.append(factor1_dict["node"])
+        comma_dict = Match(Token_type.COMMA, factor1_dict["index"])
+        children.append(comma_dict["node"])
+        factor2_dict = Factor(comma_dict["index"])
+        children.append(factor2_dict["node"])
+        step_dict = Step(factor2_dict["index"])
+        children.append(step_dict["node"])
+        Node = Tree('DoWork Statement', children)
+        out = dict()
+        out["node"] = Node
+        out["index"] = step_dict['index']
+        return out
+    else:
+        out = dict()
+        out["node"] = ""
+        out["index"] = j
+        return out
 
 
 def Step(j):
@@ -1009,15 +1063,40 @@ def VarDecl(j):
 
     comma_dict = Match(Token_type.COMMA, j)
     children.append(comma_dict["node"])
-    identify_dict = Match(Token_type.Identifier, comma_dict["index"])
-    children.append(identify_dict["node"])
+    varTest_dict = varTest(comma_dict["index"])
+    children.append(varTest_dict["node"])
     Node = Tree('VarDecl', children)
     out = dict()
     out["node"] = Node
-    out["index"] = identify_dict['index']
+    out["index"] = varTest_dict['index']
     return out
 
-
+def varTest(j):
+    children = []
+    temp = TokensWithoutComments[j].to_dict()
+    temp1 = TokensWithoutComments[j+1].to_dict()
+    if temp['token_type'] == Token_type.Identifier:
+        if temp1['token_type'] == Token_type.EqualOp:
+            assi_dict = Assignment(j)
+            children.append(assi_dict["node"])
+            Node = Tree('varTest', children)
+            out = dict()
+            out["node"] = Node
+            out["index"] = assi_dict['index']
+            return out
+        else:
+            assi_dict = Match(Token_type.Identifier,j)
+            children.append(assi_dict["node"])
+            Node = Tree('varTest', children)
+            out = dict()
+            out["node"] = Node
+            out["index"] = assi_dict['index']
+            return out
+    else:
+        out = dict()
+        out["node"] = ""
+        out["index"] = j
+        return out
 def Print(j):
     children = []
 
@@ -1134,9 +1213,9 @@ def ifStatement(j):
     children.append(endlines_dict["node"])
     statements_dict = Statements(endlines_dict["index"])
     children.append(statements_dict["node"])
-    endlines1_dict = Endlines(statements_dict["index"])
-    children.append(endlines1_dict["node"])
-    elseClause_dict = ElseClause(endlines1_dict["index"])
+    # endlines1_dict = Endlines(statements_dict["index"])
+    # children.append(endlines1_dict["node"])
+    elseClause_dict = ElseClause(statements_dict["index"])
     children.append(elseClause_dict["node"])
     Node = Tree('ifStatement', children)
     out = dict()
